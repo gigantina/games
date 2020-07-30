@@ -9,13 +9,18 @@ bot = telebot.TeleBot('1265229254:AAHJGt7bhCTc3SEN1_9LqvGtEVwIAeIFiy4')
 @bot.message_handler(commands=['start'])
 def hello(message):
     bot.send_message(message.from_user.id,
-                     'Привет! Я ищу игры по категориям или могу прислать подборку игр разных жанров', reply_markup=menu())
+                     'Привет! Я ищу игры по категориям или могу прислать подборку игр разных жанров',
+                     reply_markup=menu())
+
 
 def menu():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*[types.KeyboardButton(name) for name in ['Аркады', 'RPG', 'Гонки', 'Драки', 'Квесты', 'Логические', 'Приключения', 'Симуляторы', 'Спорт', 'Стратегии',
-       'Хоррор', 'Далее ->']])
+    keyboard.add(*[types.KeyboardButton(name) for name in
+                   ['Аркады', 'RPG', 'Гонки', 'Драки', 'Квесты', 'Логические', 'Приключения', 'Симуляторы', 'Спорт',
+                    'Стратегии',
+                    'Хоррор', 'Далее ->']])
     return keyboard
+
 
 def next():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -53,11 +58,9 @@ def send_text(message):
 
 
 def parse_cat(category, n=5):
-    r = requests.get(f'https://thelastgame.ru/category/{pages_cat[category - 1]}')
-    html = bs(r.content, 'html.parser')
-    max_page = int(str(html.select('a.last')[0]).split('/')[6])
+    max_page = get_max_page(category)
     page = random.randint(1, max_page - 1)
-    r = requests.get(f'https://thelastgame.ru/category/{pages_cat[category - 1]}/page/{page}')
+    r = requests.get(f'https://thelastgame.ru/category/{pages_cat[category]}/page/{page}')
     html = bs(r.content, 'html.parser')
     games = html.select('.post-thumbnail')
     res = []
@@ -69,11 +72,19 @@ def parse_cat(category, n=5):
     return res
 
 
+def get_max_page(category):
+    r = requests.get(f'https://thelastgame.ru/category/{pages_cat[category]}')
+    html = bs(r.content, 'html.parser')
+    max_page = int(str(html.select('a.last')[0]).split('/')[6])
+    return max_page
+
+
 def parse_top():
     res = []
     for i in range(13):
         res.append(parse_cat(i, 1)[0])
     return res
+
 
 while True:
     try:
